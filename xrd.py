@@ -197,7 +197,7 @@ class XRD(object):
         else:
             plt.show()
 
-    def get_dspacing(self):
+    def get_dspacing(self, file_name):
     	'''
     	WHHAN; slightly modify the original code due to obtaining d spacing
     	'''
@@ -246,7 +246,7 @@ class XRD(object):
         #	templine = str(y_list_sort[i]) + ' ' + str(x_list_sort[i]) + ' ' + str(d_list_sort[i])
         #	print templine
 
-        f = open('d_spacing.out', 'w')
+        f = open(file_name, 'w')
 
         firstline = 'intensity two_theta d_spacing' + '\n'
         f.write(firstline)
@@ -276,12 +276,15 @@ if __name__ == '__main__':
                        help='2theta range')
     parser.add_argument('-o', '--output', type=str, default=None,
                        help='output file name if None plot window shows up')
+    parser.add_argument('-do', '--output_dspacing', type=str, default='./d_spacing.out',
+                       help='output file name if None plot window shows up')   
     args = parser.parse_args()
 
     poscar_file = args.file
     wavelength = args.wavelength 
     angles = args.angle
     output = args.output
+    output_dspacing = args.output_dspacing
 
     lat_const, lattice_vecs, atoms = readCONTCAR(poscar_file)
 
@@ -290,5 +293,5 @@ if __name__ == '__main__':
     xrd_si = XRD(lattice, atoms, wavelength)
     xrd_si.get_xrd()
     #xrd_si.plot(angles, output)
-    xrd_si.get_dspacing()
+    xrd_si.get_dspacing(output_dspacing)
 
