@@ -197,6 +197,71 @@ class XRD(object):
         else:
             plt.show()
 
+    def get_dspacing(self):
+    	'''
+    	WHHAN; slightly modify the original code due to obtaining d spacing
+    	'''
+        def sum_intensity(x_list, y_list, tolerance=1E-5):
+            """ Multiplicity treatment
+                similar to histogram
+                if same x in x_list, merge them
+            """
+            new_x_list = []
+            new_y_list = []
+            for i, x_value in enumerate(x_list):
+                index = np.where(abs(new_x_list - x_value) <= tolerance)[0]
+                if len(index) > 0:
+                    new_y_list[index[0]] += y_list[i]
+                else:
+                    new_x_list.append(x_list[i])
+                    new_y_list.append(y_list[i])
+            return new_x_list, new_y_list
+
+        def normalize(y_list, max_value=100.):
+            """ maximum y set to be 100
+            """
+            y_list = np.array(y_list)
+            y_list = y_list / max(y_list) * max_value
+            return y_list
+
+        if not self.twotheta_list:
+            self.get_xrd()
+
+        x_list, y_list = self.twotheta_list, self.intensity_list
+        x_list, y_list = sum_intensity(x_list, y_list)
+        y_list = normalize(y_list)
+
+
+        y_list_sort = np.sort(y_list)[::-1] # sorted intensity
+        y_list_argsort = np.argsort(y_list)
+        x_list_sort = [] # sorted two theta
+        for i in y_list_argsort:
+            x_list_sort.append(x_list[i])
+
+        x_list_sort = x_list_sort[::-1]
+
+        d_list_sort = self.wavelength / (2.0 * np.sin(np.array(x_list_sort) * np.pi / 360 ))
+
+        #for i in range(len(x_list_sort)):
+        #	templine = str(y_list_sort[i]) + ' ' + str(x_list_sort[i]) + ' ' + str(d_list_sort[i])
+        #	print templine
+
+        f = open('d_spacing.out', 'w')
+
+        firstline = 'intensity two_theta d_spacing' + '\n'
+        f.write(firstline)
+
+        for i in range(len(x_list_sort)):
+        	templine = str(y_list_sort[i]) + ' ' + str(x_list_sort[i]) + ' ' + str(d_list_sort[i]) + '\n'
+        	f.write(templine)
+
+        f.close()
+
+
+
+
+
+
 
 if __name__ == '__main__':
     """ example for fcc Si
@@ -224,5 +289,6 @@ if __name__ == '__main__':
 
     xrd_si = XRD(lattice, atoms, wavelength)
     xrd_si.get_xrd()
-    xrd_si.plot(angles, output)
+    #xrd_si.plot(angles, output)
+    xrd_si.get_dspacing()
 
